@@ -95,7 +95,7 @@ class ApiClient {
                 },
             });
             const data = (yield response.json());
-            if (response.ok && data === 'true') {
+            if (response.ok) {
                 const authToken = response.headers.get('x-auth-token');
                 console.log(`Received auth token: ${authToken}`);
                 return authToken;
