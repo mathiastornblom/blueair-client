@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 /**
  * Represents a device structure. Add more properties as per your actual data.
  */
@@ -83,7 +85,7 @@ export class ApiClient {
             );
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as string;
         console.log(`Determined endpoint: ${data}`);
         return data;
     }
@@ -114,9 +116,9 @@ export class ApiClient {
             },
         });
 
-        const data = await response.json();
+        const data = (await response.json()) as any;
 
-        if (response.ok && data === true) {
+        if (response.ok && data === 'true') {
             const authToken = response.headers.get('x-auth-token');
             console.log(`Received auth token: ${authToken}`);
             return authToken;
@@ -182,7 +184,7 @@ export class ApiClient {
             );
         }
 
-        const devices: Device[] = await response.json();
+        const devices: Device[] = (await response.json()) as Device[];
         console.log(`Received ${devices.length} devices.`);
         return devices;
     }
@@ -352,7 +354,7 @@ export class ApiClient {
                 throw new Error('Error setting fan speed');
             }
 
-            const responseData = await response.json();
+            const responseData = (await response.json()) as any;
             return responseData;
         } catch (error) {
             if (isError(error) && error.message.includes('401')) {
@@ -441,7 +443,7 @@ export class ApiClient {
                 throw new Error('Error setting brightness');
             }
 
-            const responseData = await response.json();
+            const responseData = (await response.json()) as any;
             return responseData;
         } catch (error) {
             if (isError(error) && error.message.includes('401')) {
@@ -531,7 +533,7 @@ export class ApiClient {
                 throw new Error('Error setting child lock');
             }
 
-            const responseData = await response.json();
+            const responseData = (await response.json()) as any;
             return responseData;
         } catch (error) {
             if (isError(error) && error.message.includes('401')) {

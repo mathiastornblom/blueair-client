@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiClient = void 0;
+const node_fetch_1 = __importDefault(require("node-fetch"));
 /**
  * ApiClient Class:
  * A client for handling requests to the BlueAir API.
@@ -53,7 +57,7 @@ class ApiClient {
             const url = `${this.HOMEHOST_ENDPOINT}user/${encodeURIComponent(this.username)}/homehost/`;
             console.log(`Determining endpoint with URL: ${url}`);
             console.log(`Basic ${this.base64Credentials}`);
-            const response = yield fetch(url, {
+            const response = yield (0, node_fetch_1.default)(url, {
                 method: 'GET',
                 headers: {
                     Authorization: `Basic ${this.base64Credentials}`,
@@ -65,7 +69,7 @@ class ApiClient {
                 console.error('Failed to determine endpoint', response, errorText);
                 throw new Error(`Failed to determine endpoint. Status: ${response.status}. Message: ${errorText}`);
             }
-            const data = yield response.json();
+            const data = (yield response.json());
             console.log(`Determined endpoint: ${data}`);
             return data;
         });
@@ -83,15 +87,15 @@ class ApiClient {
             }
             const url = `https://${endpoint}/v2/user/${encodeURIComponent(this.username)}/login/`;
             console.log(`Determining login endpoint with URL: ${url}`);
-            const response = yield fetch(url, {
+            const response = yield (0, node_fetch_1.default)(url, {
                 method: 'GET',
                 headers: {
                     Authorization: `Basic ${this.base64Credentials}`,
                     'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
                 },
             });
-            const data = yield response.json();
-            if (response.ok && data === true) {
+            const data = (yield response.json());
+            if (response.ok && data === 'true') {
                 const authToken = response.headers.get('x-auth-token');
                 console.log(`Received auth token: ${authToken}`);
                 return authToken;
@@ -131,7 +135,7 @@ class ApiClient {
             };
             const fetchUrl = `https://${this.endpoint}/v2/owner/${encodeURIComponent(this.username)}/device/`;
             console.log(`Fetching devices from: ${fetchUrl}`);
-            const response = yield fetch(fetchUrl, {
+            const response = yield (0, node_fetch_1.default)(fetchUrl, {
                 method: 'GET',
                 headers,
             });
@@ -143,7 +147,7 @@ class ApiClient {
                 console.error('Failed to fetch devices', response);
                 throw new Error(`Error fetching devices with status: ${response.status}`);
             }
-            const devices = yield response.json();
+            const devices = (yield response.json());
             console.log(`Received ${devices.length} devices.`);
             return devices;
         });
@@ -170,7 +174,7 @@ class ApiClient {
                 };
                 const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attributes/`;
                 console.log(`Fetching attributes for device UUID ${uuid} from: ${fetchUrl}`);
-                const response = yield fetch(fetchUrl, {
+                const response = yield (0, node_fetch_1.default)(fetchUrl, {
                     method: 'GET',
                     headers,
                 });
@@ -212,7 +216,7 @@ class ApiClient {
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/info/`;
             console.log(`Fetching device info from: ${fetchUrl}`);
-            const response = yield fetch(fetchUrl, {
+            const response = yield (0, node_fetch_1.default)(fetchUrl, {
                 method: 'GET',
                 headers,
             });
@@ -267,7 +271,7 @@ class ApiClient {
                     'Content-Type': 'application/json',
                 };
                 const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
-                const response = yield fetch(fetchUrl, {
+                const response = yield (0, node_fetch_1.default)(fetchUrl, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(body),
@@ -276,7 +280,7 @@ class ApiClient {
                     console.error('Failed to set fan speed', response);
                     throw new Error('Error setting fan speed');
                 }
-                const responseData = yield response.json();
+                const responseData = (yield response.json());
                 return responseData;
             }
             catch (error) {
@@ -336,7 +340,7 @@ class ApiClient {
                 };
                 // Make the API request
                 const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/brightness/`;
-                const response = yield fetch(fetchUrl, {
+                const response = yield (0, node_fetch_1.default)(fetchUrl, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(body),
@@ -346,7 +350,7 @@ class ApiClient {
                     console.error('Failed to set brightness', response);
                     throw new Error('Error setting brightness');
                 }
-                const responseData = yield response.json();
+                const responseData = (yield response.json());
                 return responseData;
             }
             catch (error) {
@@ -406,7 +410,7 @@ class ApiClient {
                 };
                 // Make the API request
                 const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/childlock/`;
-                const response = yield fetch(fetchUrl, {
+                const response = yield (0, node_fetch_1.default)(fetchUrl, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(body),
@@ -416,7 +420,7 @@ class ApiClient {
                     console.error('Failed to set child lock', response);
                     throw new Error('Error setting child lock');
                 }
-                const responseData = yield response.json();
+                const responseData = (yield response.json());
                 return responseData;
             }
             catch (error) {
