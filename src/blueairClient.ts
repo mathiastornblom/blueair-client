@@ -383,8 +383,8 @@ export class ApiClient {
             throw new Error('Missing arguments');
         }
         if (
-            !['Auto', 'Manual'].includes(currentValue) ||
-            !['Auto', 'Manual'].includes(defaultValue)
+            !['auto', 'manual'].includes(currentValue) ||
+            !['auto', 'manual'].includes(defaultValue)
         ) {
             throw new Error(
                 'Invalid fan speed value. Acceptable values are manual or auto'

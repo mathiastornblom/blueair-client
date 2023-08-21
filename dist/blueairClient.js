@@ -306,8 +306,8 @@ class ApiClient {
             if (!uuid || !currentValue || !defaultValue) {
                 throw new Error('Missing arguments');
             }
-            if (!['Auto', 'Manual'].includes(currentValue) ||
-                !['Auto', 'Manual'].includes(defaultValue)) {
+            if (!['auto', 'manual'].includes(currentValue) ||
+                !['auto', 'manual'].includes(defaultValue)) {
                 throw new Error('Invalid fan speed value. Acceptable values are manual or auto');
             }
             if (!this.endpoint || !this.authToken) {
