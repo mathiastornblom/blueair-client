@@ -8,8 +8,8 @@
         "url": "https://github.com/mathiastornblom/blueair-client/issues"
     },
     "type": "commonjs",
-    "main": "dist/blueairClient.js",
-    "types": "dist/blueairClient.d.ts",
+    "main": "./dist/blueairClient.js",
+    "types": "./dist/blueairClient.d.ts",
     "scripts": {
         "test": "jest"
     },
