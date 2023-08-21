@@ -77,6 +77,16 @@ export declare class ApiClient {
      */
     setFanSpeed(uuid: string, currentValue: string, defaultValue: string, userId?: number): Promise<void>;
     /**
+     * Sets the fan speed either for Auto or Manual for the device.
+     * @param uuid - The device UUID.
+     * @param currentValue - The current value for fan speed (between 0 and 3).
+     * @param defaultValue - The default value for fan speed (between 0 and 3).
+     * @param userId? - Optional user ID.
+     * @returns {Promise<void>}
+     * @throws {Error} - If invalid fan speed values or the POST operation fails.
+     */
+    setFanAuto(uuid: string, currentValue: string, defaultValue: string, userId?: number): Promise<void>;
+    /**
      * Sets the brightness for the device.
      * @param uuid - The device UUID.
      * @param currentValue - The current value for brightness (between 0 and 3).

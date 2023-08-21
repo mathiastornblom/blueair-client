@@ -293,6 +293,70 @@ class ApiClient {
         });
     }
     /**
+     * Sets the fan speed either for Auto or Manual for the device.
+     * @param uuid - The device UUID.
+     * @param currentValue - The current value for fan speed (between 0 and 3).
+     * @param defaultValue - The default value for fan speed (between 0 and 3).
+     * @param userId? - Optional user ID.
+     * @returns {Promise<void>}
+     * @throws {Error} - If invalid fan speed values or the POST operation fails.
+     */
+    setFanAuto(uuid, currentValue, defaultValue, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!uuid || !currentValue || !defaultValue) {
+                throw new Error('Missing arguments');
+            }
+            if (isNaN(Number(currentValue || defaultValue))) {
+                throw new Error('Fan speed value must be numeric.');
+            }
+            if (!['Auto', 'Manual'].includes(currentValue) ||
+                !['Auto', 'Manual'].includes(defaultValue)) {
+                throw new Error('Invalid fan speed value. Acceptable values are 0, 1, 2, or 3.');
+            }
+            if (!this.endpoint || !this.authToken) {
+                console.error('Client not initialized or missing endpoint/authToken');
+                throw new Error('Client not initialized or missing endpoint/authToken');
+            }
+            function isError(err) {
+                return err instanceof Error;
+            }
+            try {
+                const body = {
+                    userId: userId,
+                    uuid: uuid,
+                    scope: 'device',
+                    name: 'mode',
+                    currentValue: currentValue,
+                    defaultValue: defaultValue,
+                };
+                const headers = {
+                    'X-AUTH-TOKEN': this.authToken,
+                    'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
+                    'Content-Type': 'application/json',
+                };
+                const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
+                const response = yield (0, node_fetch_1.default)(fetchUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(body),
+                });
+                if (!response.ok) {
+                    console.error('Failed to set fan speed', response);
+                    throw new Error('Error setting fan speed');
+                }
+                const responseData = (yield response.json());
+                return responseData;
+            }
+            catch (error) {
+                if (isError(error) && error.message.includes('401')) {
+                    // Assuming 401 is the HTTP status code for unauthorized
+                    throw new Error('Auth token invalid or expired');
+                }
+                throw new Error('Error fetching attributes');
+            }
+        });
+    }
+    /**
      * Sets the brightness for the device.
      * @param uuid - The device UUID.
      * @param currentValue - The current value for brightness (between 0 and 3).

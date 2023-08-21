@@ -47,12 +47,12 @@ export class ApiClient {
     }
 
     // Getter for the endpoint property.
-    get endpoint(): string | null {
+    public get endpoint(): string | null {
         return this._endpoint;
     }
 
     // Getter for the authToken property.
-    get authToken(): string | null {
+    public get authToken(): string | null {
         return this._authToken;
     }
 
@@ -330,6 +330,88 @@ export class ApiClient {
                 uuid: uuid,
                 scope: 'device',
                 name: 'fan_speed',
+                currentValue: currentValue,
+                defaultValue: defaultValue,
+            };
+
+            const headers = {
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
+                'Content-Type': 'application/json',
+            };
+
+            const fetchUrl = `https://${
+                this.endpoint
+            }/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
+            const response = await fetch(fetchUrl, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                console.error('Failed to set fan speed', response);
+                throw new Error('Error setting fan speed');
+            }
+
+            const responseData = (await response.json()) as any;
+            return responseData;
+        } catch (error) {
+            if (isError(error) && error.message.includes('401')) {
+                // Assuming 401 is the HTTP status code for unauthorized
+                throw new Error('Auth token invalid or expired');
+            }
+            throw new Error('Error fetching attributes');
+        }
+    }
+    /**
+     * Sets the fan speed either for Auto or Manual for the device.
+     * @param uuid - The device UUID.
+     * @param currentValue - The current value for fan speed (between 0 and 3).
+     * @param defaultValue - The default value for fan speed (between 0 and 3).
+     * @param userId? - Optional user ID.
+     * @returns {Promise<void>}
+     * @throws {Error} - If invalid fan speed values or the POST operation fails.
+     */
+    public async setFanAuto(
+        uuid: string,
+        currentValue: string,
+        defaultValue: string,
+        userId?: number
+    ): Promise<void> {
+        if (!uuid || !currentValue || !defaultValue) {
+            throw new Error('Missing arguments');
+        }
+        if (isNaN(Number(currentValue || defaultValue))) {
+            throw new Error('Fan speed value must be numeric.');
+        }
+        if (
+            !['Auto', 'Manual'].includes(currentValue) ||
+            !['Auto', 'Manual'].includes(defaultValue)
+        ) {
+            throw new Error(
+                'Invalid fan speed value. Acceptable values are 0, 1, 2, or 3.'
+            );
+        }
+
+        if (!this.endpoint || !this.authToken) {
+            console.error(
+                'Client not initialized or missing endpoint/authToken'
+            );
+            throw new Error(
+                'Client not initialized or missing endpoint/authToken'
+            );
+        }
+        function isError(err: any): err is Error {
+            return err instanceof Error;
+        }
+
+        try {
+            const body = {
+                userId: userId,
+                uuid: uuid,
+                scope: 'device',
+                name: 'mode',
                 currentValue: currentValue,
                 defaultValue: defaultValue,
             };

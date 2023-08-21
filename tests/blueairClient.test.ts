@@ -4,7 +4,7 @@ describe('BlueAir Client', () => {
     let client: ApiClient;
 
     beforeAll(async () => {
-        client = new ApiClient('mathias@tornbloms.net', 'h6f-gm-C!');
+        client = new ApiClient('user', 'secret');
         // Try initializing the client before any test runs
         try {
             await client.initialize();
