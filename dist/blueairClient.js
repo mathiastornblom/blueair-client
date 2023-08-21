@@ -374,9 +374,9 @@ class ApiClient {
             if (isNaN(Number(currentValue || defaultValue))) {
                 throw new Error('Brightness value must be numeric.');
             }
-            if (!['0', '1', '2', '3'].includes(currentValue) ||
-                !['0', '1', '2', '3'].includes(defaultValue)) {
-                throw new Error('Invalid brightness value. Acceptable values are 0, 1, 2, or 3.');
+            if (!['0', '1', '2', '3', '4'].includes(currentValue) ||
+                !['0', '1', '2', '3', '4'].includes(defaultValue)) {
+                throw new Error('Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4.');
             }
             // Check if the client is properly initialized
             if (!this.endpoint || !this.authToken) {
