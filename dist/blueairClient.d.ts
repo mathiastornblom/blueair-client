@@ -89,8 +89,8 @@ export declare class ApiClient {
     /**
      * Sets the brightness for the device.
      * @param uuid - The device UUID.
-     * @param currentValue - The current value for brightness (between 0 and 3).
-     * @param defaultValue - The default value for brightness (between 0 and 3).
+     * @param currentValue - The current value for brightness (between 0 and 4).
+     * @param defaultValue - The default value for brightness (between 0 and 4).
      * @param userId? - Optional user ID.
      * @returns {Promise<void>}
      * @throws {Error} - If invalid brightness values or the POST operation fails.

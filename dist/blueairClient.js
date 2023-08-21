@@ -306,12 +306,9 @@ class ApiClient {
             if (!uuid || !currentValue || !defaultValue) {
                 throw new Error('Missing arguments');
             }
-            if (isNaN(Number(currentValue || defaultValue))) {
-                throw new Error('Fan speed value must be numeric.');
-            }
             if (!['Auto', 'Manual'].includes(currentValue) ||
                 !['Auto', 'Manual'].includes(defaultValue)) {
-                throw new Error('Invalid fan speed value. Acceptable values are 0, 1, 2, or 3.');
+                throw new Error('Invalid fan speed value. Acceptable values are manual or auto');
             }
             if (!this.endpoint || !this.authToken) {
                 console.error('Client not initialized or missing endpoint/authToken');
@@ -359,8 +356,8 @@ class ApiClient {
     /**
      * Sets the brightness for the device.
      * @param uuid - The device UUID.
-     * @param currentValue - The current value for brightness (between 0 and 3).
-     * @param defaultValue - The default value for brightness (between 0 and 3).
+     * @param currentValue - The current value for brightness (between 0 and 4).
+     * @param defaultValue - The default value for brightness (between 0 and 4).
      * @param userId? - Optional user ID.
      * @returns {Promise<void>}
      * @throws {Error} - If invalid brightness values or the POST operation fails.
