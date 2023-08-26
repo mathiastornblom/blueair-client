@@ -43,9 +43,9 @@ export declare class ApiClient {
     private fetchAuthToken;
     /**
      * Initializes the client by determining the API endpoint and fetching the authentication token.
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>} True if initialization was successful, false otherwise.
      */
-    initialize(): Promise<void>;
+    initialize(): Promise<boolean>;
     /**
      * Fetches the devices associated with the user.
      * @returns {Promise<any[]>} - A list of devices.

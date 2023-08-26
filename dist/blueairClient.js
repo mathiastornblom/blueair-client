@@ -108,14 +108,26 @@ class ApiClient {
     }
     /**
      * Initializes the client by determining the API endpoint and fetching the authentication token.
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>} True if initialization was successful, false otherwise.
      */
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('Initializing client...');
-            this._endpoint = yield this.determineEndpoint();
-            this._authToken = yield this.fetchAuthToken(this.endpoint);
-            console.log(`Client initialized with endpoint: ${this._endpoint} and auth token: ${this._authToken}`);
+            try {
+                console.log('Initializing client...');
+                this._endpoint = yield this.determineEndpoint();
+                const authTokenResponse = yield this.fetchAuthToken(this._endpoint);
+                if (authTokenResponse === 'false') {
+                    console.error('Authentication token fetch returned false');
+                    return false; // Initialization failed
+                }
+                this._authToken = authTokenResponse;
+                console.log(`Client initialized with endpoint: ${this._endpoint} and auth token: ${this._authToken}`);
+                return true; // Initialization was successful
+            }
+            catch (error) {
+                console.error('Error during initialization:', error);
+                return false; // Initialization failed
+            }
         });
     }
     /**
