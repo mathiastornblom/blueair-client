@@ -4,7 +4,7 @@ describe('BlueAir Client', () => {
     let client: ApiClient;
 
     beforeAll(async () => {
-        client = new ApiClient('user', 'secret');
+        client = new ApiClient('user', 'password');
         // Try initializing the client before any test runs
         try {
             await client.initialize();
@@ -18,27 +18,9 @@ describe('BlueAir Client', () => {
             'name@domain.com',
             'wrong-password'
         );
-        expect.assertions(1);
 
-        try {
-            await wrongPasswordClient.initialize();
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error(
-                    'Expected error during initialization with wrong password:',
-                    error
-                );
-                expect(error.message).toContain(
-                    'Failed to fetch auth token. Status: 404.'
-                );
-            } else {
-                console.error(
-                    'Caught unexpected non-error value during initialization:',
-                    error
-                );
-                throw error;
-            }
-        }
+        const result = await wrongPasswordClient.initialize();
+        expect(result).toBe(false);
     });
 
     it('should have a valid endpoint', () => {
@@ -174,7 +156,7 @@ describe('BlueAir Client', () => {
             if (error instanceof Error) {
                 console.error('Expected error:', error);
                 expect(error.message).toBe(
-                    'Invalid brightness value. Acceptable values are 0, 1, 2, or 3.'
+                    'Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4.'
                 );
             } else {
                 console.error('Caught unexpected non-error value:', error);
