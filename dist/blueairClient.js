@@ -95,10 +95,18 @@ class ApiClient {
                 },
             });
             const data = (yield response.json());
-            if (response.ok) {
+            if (response.status === 200) {
+                if (data === false) {
+                    console.error('User is locked out');
+                    throw new Error('User is locked out');
+                }
                 const authToken = response.headers.get('x-auth-token');
                 console.log(`Received auth token: ${authToken}`);
                 return authToken;
+            }
+            else if (response.status === 404) {
+                console.error('User not found:', data.message);
+                throw new Error(`User not found: ${data.message}`);
             }
             else {
                 console.error('Failed to fetch auth token:', data.message);
@@ -116,7 +124,7 @@ class ApiClient {
                 console.log('Initializing client...');
                 this._endpoint = yield this.determineEndpoint();
                 const authTokenResponse = yield this.fetchAuthToken(this._endpoint);
-                if (authTokenResponse === 'false') {
+                if (authTokenResponse === null) {
                     console.error('Authentication token fetch returned false');
                     return false; // Initialization failed
                 }
