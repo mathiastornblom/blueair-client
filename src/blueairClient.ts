@@ -119,13 +119,16 @@ export class ApiClient {
         const data = (await response.json()) as any;
 
         if (response.status === 200) {
+            if (data === false) {
+                console.error('User is locked out');
+                throw new Error('User is locked out');
+            }
             const authToken = response.headers.get('x-auth-token');
             console.log(`Received auth token: ${authToken}`);
             return authToken;
         } else if (response.status === 404) {
             console.error('User not found:', data.message);
-            // You can either return null, an empty string, or handle it in another way that makes sense for your application.
-            return null;
+            throw new Error(`User not found: ${data.message}`);
         } else {
             console.error('Failed to fetch auth token:', data.message);
             throw new Error(
