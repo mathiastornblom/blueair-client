@@ -1,40 +1,40 @@
 {
-    "name": "blueair-client",
-    "displayName": "BlueAir API Client",
-    "version": "1.0.12",
-    "description": "Typescript Client for BlueAir",
-    "repository": "github:mathiastornblom/blueair-client",
-    "bugs": {
-        "url": "https://github.com/mathiastornblom/blueair-client/issues"
-    },
-    "type": "commonjs",
-    "main": "./dist/blueairClient.js",
-    "types": "./dist/blueairClient.d.ts",
-    "scripts": {
-        "test": "jest"
-    },
-    "keywords": [],
-    "author": "Mathias Törnblom",
-    "license": "MIT",
-    "dependencies": {
-        "node-fetch": "^2.6.12"
-    },
-    "devDependencies": {
-        "@types/jest": "^29.5.3",
-        "@types/node-fetch": "^2.6.4",
-        "jest": "^29.6.2",
-        "ts-jest": "^29.1.1",
-        "typescript": "^5.1.6"
-    },
-    "jest": {
-        "preset": "ts-jest",
-        "testEnvironment": "node",
-        "transformIgnorePatterns": [
-            "/node_modules/(?!node-fetch/.+\\.js$)"
-        ]
-    },
-    "funding": {
-        "type": "github",
-        "url": "https://github.com/sponsors/mathiastornblom"
-    }
+	"name": "blueair-client",
+	"displayName": "BlueAir API Client",
+	"version": "1.0.13",
+	"description": "Typescript Client for BlueAir",
+	"repository": "github:mathiastornblom/blueair-client",
+	"bugs": {
+		"url": "https://github.com/mathiastornblom/blueair-client/issues"
+	},
+	"type": "commonjs",
+	"main": "./dist/blueairClient.js",
+	"types": "./dist/blueairClient.d.ts",
+	"scripts": {
+		"test": "jest"
+	},
+	"keywords": [],
+	"author": "Mathias Törnblom",
+	"license": "MIT",
+	"dependencies": {
+		"node-fetch": "^2.6.12"
+	},
+	"devDependencies": {
+		"@types/jest": "^29.5.3",
+		"@types/node-fetch": "^2.6.4",
+		"jest": "^29.6.2",
+		"ts-jest": "^29.1.1",
+		"typescript": "^5.1.6"
+	},
+	"jest": {
+		"preset": "ts-jest",
+		"testEnvironment": "node",
+		"transformIgnorePatterns": [
+			"/node_modules/(?!node-fetch/.+\\.js$)"
+		]
+	},
+	"funding": {
+		"type": "github",
+		"url": "https://github.com/sponsors/mathiastornblom"
+	}
 }
