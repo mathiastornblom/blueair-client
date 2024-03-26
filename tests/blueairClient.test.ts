@@ -3,8 +3,8 @@ import { ApiClient } from "../src/blueairClient";
 describe("BlueAir Client", () => {
 	let client: ApiClient;
 	let isClientInitialized = false; // Add this flag
-	let corrrectName = "";
-	let rightPassword = "";
+	let corrrectName = "mathias@tornbloms.net";
+	let rightPassword = "Hajfena2023?";
 
 	beforeAll(async () => {
 		client = new ApiClient(corrrectName, rightPassword);
