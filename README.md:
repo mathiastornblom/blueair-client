@@ -91,3 +91,7 @@ npm test
 
 ## Notes
 Make sure to handle authentication errors gracefully. The client is designed to throw specific error messages when the authentication token is expired or invalid. Always check for these errors in your implementation to ensure a smooth user experience.
+
+your .env file should hold the following;
+CORRECT_NAME = "usernamne";
+RIGHT_PASSWORD = "password";
