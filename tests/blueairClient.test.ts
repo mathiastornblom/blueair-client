@@ -28,7 +28,7 @@ describe("BlueAir Client", () => {
 
 	it("should fail initialization with a wrong username and password", async () => {
 		const wrongPasswordClient = new ApiClient(
-			"wronmg-name@domain.com",
+			"wrong-name@domain.com",
 			"wrong-password"
 		);
 

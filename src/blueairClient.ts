@@ -9,16 +9,6 @@ interface Device {
 	mac: string;
 	name: string;
 }
-
-interface SessionInfo {
-	sessionToken: string;
-	sessionSecret: string;
-}
-
-interface JwtResponse {
-	id_token: string;
-}
-
 /**
  * ApiClient Class:
  * A client for handling requests to the BlueAir API.
@@ -35,11 +25,6 @@ export class ApiClient {
 
 	private username: string;
 	private password: string;
-	private region: string;
-	private sessionInfo?: SessionInfo;
-	private jwt?: string;
-	private accessToken?: string;
-	private client: AxiosInstance;
 
 	// Base64 encoded credentials for Basic Authentication.
 	private base64Credentials: string;
@@ -55,14 +40,10 @@ export class ApiClient {
 	 * @param username - The user's email or username.
 	 * @param password - The user's password.
 	 */
-	constructor(username: string, password: string, region: string = "eu") {
+	constructor(username: string, password: string) {
 		this.username = username;
 		this.password = password;
-		this.region = region;
 		this.base64Credentials = btoa(`${this.username}:${this.password}`);
-		this.client = axios.create({
-			baseURL: `https://${region}.api.blueair.io/v2`,
-		});
 	}
 
 	// Getter for the endpoint property.
@@ -201,56 +182,6 @@ export class ApiClient {
 			console.error("Error during initialization:", error);
 			return false; // Initialization failed
 		}
-	}
-
-	private async refreshSession(): Promise<void> {
-		const response = await axios.post(
-			`https://accounts.${this.region}.gigya.com/accounts.login`,
-			{
-				apiKey: "<API_KEY_HERE>", // Replace <API_KEY_HERE> with actual API Key
-				loginID: this.username,
-				password: this.password,
-				targetEnv: "mobile",
-			}
-		);
-
-		this.sessionInfo = {
-			sessionToken: response.data.sessionInfo.sessionToken,
-			sessionSecret: response.data.sessionInfo.sessionSecret,
-		};
-	}
-
-	private async refreshJwt(): Promise<void> {
-		if (!this.sessionInfo) {
-			await this.refreshSession();
-		}
-
-		const response = await axios.post(
-			`https://accounts.${this.region}.gigya.com/accounts.getJWT`,
-			{
-				oauth_token: this.sessionInfo?.sessionToken,
-				secret: this.sessionInfo?.sessionSecret,
-				targetEnv: "mobile",
-			}
-		);
-
-		this.jwt = response.data.id_token;
-	}
-
-	public async refreshAccessToken(): Promise<void> {
-		if (!this.jwt) {
-			await this.refreshJwt();
-		}
-
-		const response = await this.client.post(
-			"/prod/c/login",
-			{},
-			{
-				headers: { idtoken: this.jwt },
-			}
-		);
-
-		this.accessToken = response.data.access_token;
 	}
 
 	/**
