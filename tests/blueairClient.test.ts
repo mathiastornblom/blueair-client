@@ -1,13 +1,16 @@
+import dotenv from "dotenv";
 import { ApiClient } from "../src/blueairClient";
+
+dotenv.config();
 
 describe("BlueAir Client", () => {
 	let client: ApiClient;
 	let isClientInitialized = false; // Add this flag
-	let corrrectName = "mathias@tornbloms.net";
-	let rightPassword = "Hajfena2023?";
+	let correctName: string = process.env.CORRECT_NAME!;
+	let rightPassword: string = process.env.RIGHT_PASSWORD!;
 
 	beforeAll(async () => {
-		client = new ApiClient(corrrectName, rightPassword);
+		client = new ApiClient(correctName, rightPassword);
 		// Try initializing the client before any test runs
 		try {
 			isClientInitialized = await client.initialize();
@@ -34,7 +37,7 @@ describe("BlueAir Client", () => {
 	});
 
 	it("should fail initialization with right username but wrong password", async () => {
-		const wrongPasswordClient = new ApiClient(corrrectName, "wrong-password");
+		const wrongPasswordClient = new ApiClient(correctName, "wrong-password");
 
 		const result = await wrongPasswordClient.initialize();
 		expect(result).toBe(false);
