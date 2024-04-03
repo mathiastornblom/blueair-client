@@ -1,7 +1,7 @@
 {
 	"name": "blueair-client",
 	"displayName": "BlueAir API Client",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Typescript Client for BlueAir",
 	"repository": "github:mathiastornblom/blueair-client",
 	"bugs": {
