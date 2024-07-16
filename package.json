@@ -1,7 +1,7 @@
 {
 	"name": "blueair-client",
 	"displayName": "BlueAir API Client",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"description": "Typescript Client for BlueAir",
 	"repository": "github:mathiastornblom/blueair-client",
 	"bugs": {
@@ -17,14 +17,14 @@
 	"author": "Mathias Törnblom",
 	"license": "MIT",
 	"dependencies": {
-		"axios": "^1.6.8",
+		"axios": "^1.7.2",
 		"dotenv": "^16.4.5"
 	},
 	"devDependencies": {
 		"@types/jest": "^29.5.12",
 		"jest": "^29.7.0",
-		"ts-jest": "^29.1.2",
-		"typescript": "^5.4.3"
+		"ts-jest": "^29.2.2",
+		"typescript": "^5.5.3"
 	},
 	"jest": {
 		"preset": "ts-jest",

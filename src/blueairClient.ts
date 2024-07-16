@@ -302,8 +302,16 @@ export class ApiClient {
 			// Use axios.get for the HTTP request
 			const response = await axios.get(fetchUrl, { headers });
 
-			// Direct access to the data part of the response
-			const deviceInfo = response.data;
+			// Validate if response is a valid JSON string
+			let deviceInfo;
+			try {
+				deviceInfo = JSON.parse(response.data);
+			} catch (jsonError) {
+				console.error("Failed to parse JSON:", jsonError);
+				console.error("Response text:", response.data);
+				throw new Error("Invalid JSON response");
+			}
+
 			console.log(`Received device info for UUID ${uuid}.`);
 			return deviceInfo;
 		} catch (error) {
