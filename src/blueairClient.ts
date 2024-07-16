@@ -301,15 +301,20 @@ export class ApiClient {
 		try {
 			// Use axios.get for the HTTP request
 			const response = await axios.get(fetchUrl, { headers });
+			console.log("Full response data:", response.data);
 
-			// Validate if response is a valid JSON string
+			// Check if response data is already an object
 			let deviceInfo;
-			try {
-				deviceInfo = JSON.parse(response.data);
-			} catch (jsonError) {
-				console.error("Failed to parse JSON:", jsonError);
-				console.error("Response text:", response.data);
-				throw new Error("Invalid JSON response");
+			if (typeof response.data === "object") {
+				deviceInfo = response.data;
+			} else {
+				try {
+					deviceInfo = JSON.parse(response.data);
+				} catch (jsonError) {
+					console.error("Failed to parse JSON:", jsonError);
+					console.error("Response text:", response.data);
+					throw new Error("Invalid JSON response");
+				}
 			}
 
 			console.log(`Received device info for UUID ${uuid}.`);
@@ -321,6 +326,7 @@ export class ApiClient {
 				throw new Error(`Error fetching device info: ${error.message}`);
 			} else {
 				// Handling other types of errors that could occur
+				console.error("Unexpected error", error);
 				throw error;
 			}
 		}

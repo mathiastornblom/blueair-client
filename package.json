@@ -1,7 +1,7 @@
 {
 	"name": "blueair-client",
 	"displayName": "BlueAir API Client",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Typescript Client for BlueAir",
 	"repository": "github:mathiastornblom/blueair-client",
 	"bugs": {
@@ -18,7 +18,8 @@
 	"license": "MIT",
 	"dependencies": {
 		"axios": "^1.7.2",
-		"dotenv": "^16.4.5"
+		"dotenv": "^16.4.5",
+		"node-fetch": "^3.3.2"
 	},
 	"devDependencies": {
 		"@types/jest": "^29.5.12",
