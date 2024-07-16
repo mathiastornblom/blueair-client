@@ -1,7 +1,7 @@
 {
 	"name": "blueair-client",
 	"displayName": "BlueAir API Client",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"description": "Typescript Client for BlueAir",
 	"repository": "github:mathiastornblom/blueair-client",
 	"bugs": {
@@ -11,7 +11,9 @@
 	"main": "./dist/blueairClient.js",
 	"types": "./dist/blueairClient.d.ts",
 	"scripts": {
-		"test": "jest"
+		"test": "jest",
+		"build": "tsc",
+		"publish": "npm publish --access public"
 	},
 	"keywords": [],
 	"author": "Mathias Törnblom",
