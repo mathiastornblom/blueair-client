@@ -27,7 +27,7 @@ class ApiClient {
      */
     constructor(username, password) {
         // Constant API key token, required for authenticating with the API.
-        this.API_KEY_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoiYmx1ZWFpciIsImlhdCI6MTQ1MzEyNTYzMiwidmFsaWRpdHkiOi0xLCJqdGkiOiJkNmY3OGE0Yi1iMWNkLTRkZDgtOTA2Yi1kN2JkNzM0MTQ2NzQiLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwicXVvdGEiOi0xLCJyYXRlTGltaXQiOi0xfQ.CJsfWVzFKKDDA6rWdh-hjVVVE9S3d6Hu9BzXG9htWFw";
+        this.API_KEY_TOKEN = process.env.API_KEY_TOKEN || "";
         // Endpoint to determine the home host. You will need to replace this with your actual endpoint.
         this.HOMEHOST_ENDPOINT = "https://api.blueair.io/v2/";
         // The API endpoint determined after initialization.
@@ -53,32 +53,35 @@ class ApiClient {
      */
     determineEndpoint() {
         return __awaiter(this, void 0, void 0, function* () {
+            // Construct the URL for determining the home host
             const url = `${this.HOMEHOST_ENDPOINT}user/${encodeURIComponent(this.username)}/homehost/`;
             console.log(`Determining endpoint with URL: ${url}`);
             console.log(`Basic ${this.base64Credentials}`);
-            try {
-                const response = yield axios_1.default.get(url, {
-                    headers: {
-                        Authorization: `Basic ${this.base64Credentials}`,
-                        "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                    },
-                });
-                console.log(`Determined endpoint: ${response.data}`);
-                return response.data;
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Now TypeScript knows this is an AxiosError
-                    console.error("Failed to determine endpoint", error);
-                    // Use error.response and error.message safely here
-                    throw new Error(`Failed to determine endpoint. Message: ${error.message}`);
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    // Make the GET request to fetch the endpoint
+                    const response = yield axios_1.default.get(url, {
+                        headers: {
+                            Authorization: `Basic ${this.base64Credentials}`,
+                            "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                        },
+                    });
+                    console.log(`Determined endpoint: ${response.data}`);
+                    return response.data;
                 }
-                else {
-                    // Handle case where error is not an AxiosError
-                    console.error("An unexpected error occurred", error);
-                    throw new Error("An unexpected error occurred");
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle Axios-specific errors
+                        console.error("Failed to determine endpoint", error);
+                        throw new Error(`Failed to determine endpoint. Message: ${error.message}`);
+                    }
+                    else {
+                        // Handle non-Axios errors
+                        console.error("An unexpected error occurred", error);
+                        throw new Error("An unexpected error occurred");
+                    }
                 }
-            }
+            }));
         });
     }
     /**
@@ -92,52 +95,54 @@ class ApiClient {
             if (!endpoint) {
                 throw new Error("Endpoint is null. Cannot fetch auth token.");
             }
+            // Construct the URL for fetching the auth token
             const url = `https://${endpoint}/v2/user/${encodeURIComponent(this.username)}/login/`;
             console.log(`Determining login endpoint with URL: ${url}`);
-            try {
-                const response = yield axios_1.default.get(url, {
-                    headers: {
-                        Authorization: `Basic ${this.base64Credentials}`,
-                        "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                    },
-                });
-                // Directly access data from axios response
-                const data = response.data;
-                // Axios automatically throws for status codes outside the 2xx range, so this check is technically not needed
-                if (response.status === 200) {
-                    if (data === false) {
-                        console.error("User is locked out");
-                        throw new Error("User is locked out");
-                    }
-                    // Accessing headers with axios
-                    const authToken = response.headers["x-auth-token"];
-                    console.log(`Received auth token: ${authToken}`);
-                    return authToken;
-                }
-                else {
-                    // This else block is technically redundant due to axios's error handling
-                    console.error("Unexpected status code:", response.status);
-                    return null;
-                }
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Handling Axios errors specifically
-                    const response = error.response;
-                    if (response && response.status === 404) {
-                        console.error("User not found:", response.data.message);
-                        throw new Error(`User not found: ${response.data.message}`);
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    // Make the GET request to fetch the auth token
+                    const response = yield axios_1.default.get(url, {
+                        headers: {
+                            Authorization: `Basic ${this.base64Credentials}`,
+                            "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                        },
+                    });
+                    // Directly access data from axios response
+                    const data = response.data;
+                    if (response.status === 200) {
+                        if (data === false) {
+                            console.error("User is locked out");
+                            throw new Error("User is locked out");
+                        }
+                        // Access the auth token from response headers
+                        const authToken = response.headers["x-auth-token"];
+                        console.log(`Received auth token: ${authToken}`);
+                        return authToken;
                     }
                     else {
-                        console.error("Failed to fetch auth token:", response === null || response === void 0 ? void 0 : response.data.message);
-                        throw new Error(`Failed to fetch auth token. Status: ${response === null || response === void 0 ? void 0 : response.status}. Message: ${response === null || response === void 0 ? void 0 : response.data.message}`);
+                        console.error("Unexpected status code:", response.status);
+                        return null;
                     }
                 }
-                else {
-                    // Handling non-Axios errors
-                    throw error;
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle Axios-specific errors
+                        const response = error.response;
+                        if (response && response.status === 404) {
+                            console.error("User not found:", response.data.message);
+                            throw new Error(`User not found: ${response.data.message}`);
+                        }
+                        else {
+                            console.error("Failed to fetch auth token:", response === null || response === void 0 ? void 0 : response.data.message);
+                            throw new Error(`Failed to fetch auth token. Status: ${response === null || response === void 0 ? void 0 : response.status}. Message: ${response === null || response === void 0 ? void 0 : response.data.message}`);
+                        }
+                    }
+                    else {
+                        // Handle non-Axios errors
+                        throw error;
+                    }
                 }
-            }
+            }));
         });
     }
     /**
@@ -148,7 +153,9 @@ class ApiClient {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log("Initializing client...");
+                // Determine the API endpoint
                 this._endpoint = yield this.determineEndpoint();
+                // Fetch the authentication token
                 const authTokenResponse = yield this.fetchAuthToken(this._endpoint);
                 if (authTokenResponse === null) {
                     console.error("Authentication token fetch returned false");
@@ -166,42 +173,46 @@ class ApiClient {
     }
     /**
      * Fetches the devices associated with the user.
-     * @returns {Promise<any[]>} - A list of devices.
+     * @returns {Promise<Device[]>} - A list of devices.
      * @throws {Error} - If the client is not initialized or the fetch operation fails.
      */
     getDevices() {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
+            // Define headers for the request, including authentication tokens
             const headers = {
                 "X-AUTH-TOKEN": this.authToken,
                 "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
             };
+            // Construct the URL for fetching devices
             const fetchUrl = `https://${this.endpoint}/v2/owner/${encodeURIComponent(this.username)}/device/`;
             console.log(`Fetching devices from: ${fetchUrl}`);
-            try {
-                const response = yield axios_1.default.get(fetchUrl, { headers });
-                console.log(`Received ${response.data.length} devices.`);
-                return response.data;
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Handle HTTP errors (e.g., 401 Unauthorized)
-                    if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                        throw new Error("Auth token invalid or expired");
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
+                try {
+                    // Make the GET request to fetch devices
+                    const response = yield axios_1.default.get(fetchUrl, { headers });
+                    console.log(`Received ${response.data.length} devices.`);
+                    return response.data;
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle HTTP errors (e.g., 401 Unauthorized)
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+                            throw new Error("Auth token invalid or expired");
+                        }
+                        console.error("Failed to fetch devices", error);
+                        throw new Error(`Error fetching devices: ${(_b = error.response) === null || _b === void 0 ? void 0 : _b.status}`);
                     }
-                    console.error("Failed to fetch devices", error);
-                    throw new Error(`Error fetching devices: ${(_b = error.response) === null || _b === void 0 ? void 0 : _b.status}`);
+                    else {
+                        // Handle non-HTTP errors (e.g., network issues)
+                        console.error("An unexpected error occurred", error);
+                        throw new Error("An unexpected error occurred");
+                    }
                 }
-                else {
-                    // Handle non-HTTP errors (e.g., network issues)
-                    console.error("An unexpected error occurred", error);
-                    throw new Error("An unexpected error occurred");
-                }
-            }
+            }));
         });
     }
     /**
@@ -212,99 +223,104 @@ class ApiClient {
      */
     getDeviceAttributes(uuid) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
-            try {
-                const headers = {
-                    "X-AUTH-TOKEN": this.authToken,
-                    "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                };
-                const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attributes/`;
-                console.log(`Fetching attributes for device UUID ${uuid} from: ${fetchUrl}`);
-                // Using axios.get to make the HTTP request
-                const response = yield axios_1.default.get(fetchUrl, { headers });
-                // Direct access to data part of the response with axios
-                const attributes = response.data;
-                console.log(`Received attributes for device UUID ${uuid}.`);
-                return attributes;
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Handling Axios errors specifically
-                    if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                        // If the HTTP status code is 401 Unauthorized
-                        throw new Error("Auth token invalid or expired");
+            // Define headers for the request, including authentication tokens
+            const headers = {
+                "X-AUTH-TOKEN": this.authToken,
+                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+            };
+            // Construct the URL for fetching device attributes
+            const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attributes/`;
+            console.log(`Fetching attributes for device UUID ${uuid} from: ${fetchUrl}`);
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    // Make the GET request to fetch device attributes
+                    const response = yield axios_1.default.get(fetchUrl, { headers });
+                    // Access the data part of the response
+                    const attributes = response.data;
+                    console.log(`Received attributes for device UUID ${uuid}.`);
+                    return attributes;
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle Axios errors specifically
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+                            throw new Error("Auth token invalid or expired");
+                        }
+                        else {
+                            throw new Error(`Error fetching attributes: ${error.message}`);
+                        }
                     }
                     else {
-                        // Other Axios errors
-                        throw new Error(`Error fetching attributes: ${error.message}`);
+                        throw error;
                     }
                 }
-                else {
-                    // Handling non-Axios errors
-                    throw error;
-                }
-            }
+            }));
         });
     }
     /**
      * Fetches the information of a device associated with the given UUID.
+     * This method ensures that the client is initialized and retries the request in case of transient failures.
+     *
      * @param uuid - The UUID of the device.
-     * @returns {Promise<any>} - Information of the device.
-     * @throws {Error} - If the client is not initialized or the fetch operation fails.
+     * @returns A Promise that resolves with the device information.
+     * @throws {Error} - If the client is not initialized, the UUID is missing, or the fetch operation fails.
      */
     getDeviceInfo(uuid) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
             if (!uuid) {
                 throw new Error("Missing arguments");
             }
+            // Define headers for the request, including authentication tokens
             const headers = {
                 "X-AUTH-TOKEN": this.authToken,
                 "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
             };
+            // Construct the URL for fetching device information using the provided UUID
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/info/`;
-            console.log(`Fetching device info from: ${fetchUrl}`);
-            try {
-                // Use axios.get for the HTTP request
-                const response = yield axios_1.default.get(fetchUrl, { headers });
-                console.log("Full response data:", response.data);
-                // Check if response data is already an object
-                let deviceInfo;
-                if (typeof response.data === "object") {
-                    deviceInfo = response.data;
-                }
-                else {
-                    try {
-                        deviceInfo = JSON.parse(response.data);
+            // Use the retry function to attempt the request, retrying on failure
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    // Make the HTTP GET request to fetch device information
+                    const response = yield axios_1.default.get(fetchUrl, { headers });
+                    // Initialize a variable to hold the device information
+                    let deviceInfo;
+                    // Check if the response data is already an object
+                    if (typeof response.data === "object") {
+                        deviceInfo = response.data;
                     }
-                    catch (jsonError) {
-                        console.error("Failed to parse JSON:", jsonError);
-                        console.error("Response text:", response.data);
-                        throw new Error("Invalid JSON response");
+                    else {
+                        // Attempt to parse the response data as JSON if it's not an object
+                        try {
+                            deviceInfo = JSON.parse(response.data);
+                        }
+                        catch (jsonError) {
+                            // Throw an error if JSON parsing fails
+                            throw new Error("Invalid JSON response");
+                        }
+                    }
+                    // Return the parsed or directly received device information
+                    return deviceInfo;
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle Axios-specific errors
+                        console.error("Failed to fetch device info", error);
+                        throw new Error(`Error fetching device info: ${error.message}`);
+                    }
+                    else {
+                        // Handle non-Axios errors
+                        console.error("Unexpected error", error);
+                        throw error;
                     }
                 }
-                console.log(`Received device info for UUID ${uuid}.`);
-                return deviceInfo;
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Handling errors specifically returned by axios
-                    console.error("Failed to fetch device info", error);
-                    throw new Error(`Error fetching device info: ${error.message}`);
-                }
-                else {
-                    // Handling other types of errors that could occur
-                    console.error("Unexpected error", error);
-                    throw error;
-                }
-            }
+            }));
         });
     }
     /**
@@ -318,7 +334,6 @@ class ApiClient {
      */
     setFanSpeed(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             if (!uuid || !currentValue || !defaultValue) {
                 throw new Error("Missing arguments");
             }
@@ -330,43 +345,48 @@ class ApiClient {
                 throw new Error("Invalid fan speed value. Acceptable values are 0, 1, 2, or 3.");
             }
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
-            try {
-                const body = {
-                    userId: userId,
-                    uuid: uuid,
-                    scope: "device",
-                    name: "fan_speed",
-                    currentValue: currentValue,
-                    defaultValue: defaultValue,
-                };
-                const headers = {
-                    "X-AUTH-TOKEN": this.authToken,
-                    "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                    "Content-Type": "application/json",
-                };
-                const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
-                // Using axios.post to send the request
-                yield axios_1.default.post(fetchUrl, body, { headers });
-                console.log("Fan speed set successfully.");
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // If the error is from axios, you can directly check its status code
-                    if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                        throw new Error("Auth token invalid or expired");
+            // Prepare the request payload
+            const body = {
+                userId: userId,
+                uuid: uuid,
+                scope: "device",
+                name: "fan_speed",
+                currentValue: currentValue,
+                defaultValue: defaultValue,
+            };
+            // Set request headers
+            const headers = {
+                "X-AUTH-TOKEN": this.authToken,
+                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                "Content-Type": "application/json",
+            };
+            // Construct the URL for setting fan speed
+            const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
+            // Use the retry function to attempt the request, retrying on failure
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    // Send a POST request using axios
+                    yield axios_1.default.post(fetchUrl, body, { headers });
+                    console.log("Fan speed set successfully.");
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle Axios errors specifically
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+                            throw new Error("Auth token invalid or expired");
+                        }
+                        else {
+                            throw new Error(`Error setting fan speed: ${error.message}`);
+                        }
                     }
                     else {
-                        throw new Error(`Error setting fan speed: ${error.message}`);
+                        throw error;
                     }
                 }
-                else {
-                    // Handling non-axios errors
-                    throw error;
-                }
-            }
+            }));
         });
     }
     /**
@@ -380,7 +400,6 @@ class ApiClient {
      */
     setFanAuto(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             if (!uuid || !currentValue || !defaultValue) {
                 throw new Error("Missing arguments");
             }
@@ -389,43 +408,48 @@ class ApiClient {
                 throw new Error("Invalid fan speed value. Acceptable values are manual or auto");
             }
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
-            try {
-                const body = {
-                    userId: userId,
-                    uuid: uuid,
-                    scope: "device",
-                    name: "mode",
-                    currentValue: currentValue,
-                    defaultValue: defaultValue,
-                };
-                const headers = {
-                    "X-AUTH-TOKEN": this.authToken,
-                    "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                    "Content-Type": "application/json",
-                };
-                const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
-                // Using axios.post to send the request
-                yield axios_1.default.post(fetchUrl, body, { headers });
-                console.log("Fan mode set successfully.");
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // If the error is from axios, you can directly check its status code
-                    if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                        throw new Error("Auth token invalid or expired");
+            // Prepare the request payload
+            const body = {
+                userId: userId,
+                uuid: uuid,
+                scope: "device",
+                name: "mode",
+                currentValue: currentValue,
+                defaultValue: defaultValue,
+            };
+            // Set request headers
+            const headers = {
+                "X-AUTH-TOKEN": this.authToken,
+                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                "Content-Type": "application/json",
+            };
+            // Construct the URL for setting fan mode
+            const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
+            // Use the retry function to attempt the request, retrying on failure
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    // Send a POST request using axios
+                    yield axios_1.default.post(fetchUrl, body, { headers });
+                    console.log("Fan mode set successfully.");
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        // Handle Axios errors specifically
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+                            throw new Error("Auth token invalid or expired");
+                        }
+                        else {
+                            throw new Error(`Error setting fan mode: ${error.message}`);
+                        }
                     }
                     else {
-                        throw new Error(`Error setting fan mode: ${error.message}`);
+                        throw error;
                     }
                 }
-                else {
-                    // Handling non-axios errors
-                    throw error;
-                }
-            }
+            }));
         });
     }
     /**
@@ -439,8 +463,6 @@ class ApiClient {
      */
     setBrightness(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            // Validate inputs
             if (!uuid || !currentValue || !defaultValue) {
                 throw new Error("Missing arguments");
             }
@@ -451,47 +473,47 @@ class ApiClient {
                 !["0", "1", "2", "3", "4"].includes(defaultValue)) {
                 throw new Error("Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4.");
             }
-            // Check client initialization
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
-            try {
-                // Prepare the request payload
-                const body = {
-                    userId: userId,
-                    uuid: uuid,
-                    scope: "device",
-                    name: "brightness",
-                    currentValue: currentValue,
-                    defaultValue: defaultValue,
-                };
-                // Set request headers
-                const headers = {
-                    "X-AUTH-TOKEN": this.authToken,
-                    "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                    "Content-Type": "application/json",
-                };
-                // Construct the URL
-                const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/brightness/`;
-                // Send a POST request using axios
-                const response = yield axios_1.default.post(fetchUrl, body, { headers });
-                console.log("Brightness set successfully.");
-                return response.data; // You might adjust this return based on the actual response structure
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Check for unauthorized status or other axios-specific errors
-                    if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                        throw new Error("Auth token invalid or expired");
+            // Prepare the request payload
+            const body = {
+                userId: userId,
+                uuid: uuid,
+                scope: "device",
+                name: "brightness",
+                currentValue: currentValue,
+                defaultValue: defaultValue,
+            };
+            // Set request headers
+            const headers = {
+                "X-AUTH-TOKEN": this.authToken,
+                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                "Content-Type": "application/json",
+            };
+            // Construct the URL for setting brightness
+            const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/brightness/`;
+            // Use the retry function to attempt the request, retrying on failure
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    // Send a POST request using axios
+                    const response = yield axios_1.default.post(fetchUrl, body, { headers });
+                    console.log("Brightness set successfully.");
+                    return response.data; // You might adjust this return based on the actual response structure
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+                            throw new Error("Auth token invalid or expired");
+                        }
+                        throw new Error(`Error setting brightness: ${error.message}`);
                     }
-                    throw new Error(`Error setting brightness: ${error.message}`);
+                    else {
+                        throw error;
+                    }
                 }
-                else {
-                    // Non-axios errors
-                    throw error;
-                }
-            }
+            }));
         });
     }
     /**
@@ -505,8 +527,6 @@ class ApiClient {
      */
     setChildLock(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            // Check for valid child lock values
             if (!uuid || !currentValue || !defaultValue) {
                 throw new Error("Missing arguments");
             }
@@ -517,47 +537,79 @@ class ApiClient {
                 !["0", "1"].includes(defaultValue)) {
                 throw new Error("Invalid child lock value. Acceptable values are 0 (unlocked) or 1 (locked).");
             }
-            // Check if the client is properly initialized
             if (!this.endpoint || !this.authToken) {
-                console.error("Client not initialized or missing endpoint/authToken");
                 throw new Error("Client not initialized or missing endpoint/authToken");
             }
-            try {
-                // Prepare request body
-                const body = {
-                    userId: userId,
-                    uuid: uuid,
-                    scope: "device",
-                    name: "child_lock",
-                    currentValue: currentValue,
-                    defaultValue: defaultValue,
-                };
-                // Prepare request headers
-                const headers = {
-                    "X-AUTH-TOKEN": this.authToken,
-                    "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                    "Content-Type": "application/json",
-                };
-                // Make the API request using axios
-                const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/childlock/`;
-                yield axios_1.default.post(fetchUrl, body, { headers });
-                console.log("Child lock set successfully.");
-            }
-            catch (error) {
-                if (axios_1.default.isAxiosError(error)) {
-                    // Axios errors are thrown for responses outside the 2xx range
-                    if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                        throw new Error("Auth token invalid or expired");
+            // Prepare the request payload
+            const body = {
+                userId: userId,
+                uuid: uuid,
+                scope: "device",
+                name: "child_lock",
+                currentValue: currentValue,
+                defaultValue: defaultValue,
+            };
+            // Set request headers
+            const headers = {
+                "X-AUTH-TOKEN": this.authToken,
+                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                "Content-Type": "application/json",
+            };
+            // Construct the URL for setting child lock
+            const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/childlock/`;
+            // Use the retry function to attempt the request, retrying on failure
+            return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    // Send a POST request using axios
+                    yield axios_1.default.post(fetchUrl, body, { headers });
+                    console.log("Child lock set successfully.");
+                }
+                catch (error) {
+                    if (axios_1.default.isAxiosError(error)) {
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+                            throw new Error("Auth token invalid or expired");
+                        }
+                        else {
+                            throw new Error(`Error setting child lock: ${error.message}`);
+                        }
                     }
                     else {
-                        throw new Error(`Error setting child lock: ${error.message}`);
+                        throw error;
                     }
                 }
-                else {
-                    // Non-Axios errors
-                    throw error;
+            }));
+        });
+    }
+    /**
+     * Retries an asynchronous operation a specified number of times with a delay between each attempt.
+     *
+     * @template T - The type of the result that the function fn returns.
+     * @param fn - A function that returns a Promise. This is the operation that will be retried upon failure.
+     * @param retries - The number of times to retry the operation. Default is 3.
+     * @param delay - The delay in milliseconds between each retry attempt. Default is 1000ms (1 second).
+     * @returns A Promise that resolves with the result of the function fn if it eventually succeeds,
+     * or rejects with an error if all retry attempts fail.
+     */
+    retry(fn_1) {
+        return __awaiter(this, arguments, void 0, function* (fn, retries = 3, delay = 1000) {
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    // Attempt to execute the provided function
+                    return yield fn();
+                }
+                catch (error) {
+                    // If an error occurs and we haven't exhausted our retries, wait for the specified delay
+                    if (attempt < retries) {
+                        yield new Promise((res) => setTimeout(res, delay));
+                    }
+                    else {
+                        // If this was the last attempt, rethrow the error
+                        throw error;
+                    }
                 }
             }
+            throw new Error("Failed after multiple retries");
         });
     }
 }

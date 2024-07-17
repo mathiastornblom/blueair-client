@@ -48,7 +48,7 @@ export declare class ApiClient {
     initialize(): Promise<boolean>;
     /**
      * Fetches the devices associated with the user.
-     * @returns {Promise<any[]>} - A list of devices.
+     * @returns {Promise<Device[]>} - A list of devices.
      * @throws {Error} - If the client is not initialized or the fetch operation fails.
      */
     getDevices(): Promise<Device[]>;
@@ -61,9 +61,11 @@ export declare class ApiClient {
     getDeviceAttributes(uuid: string): Promise<any>;
     /**
      * Fetches the information of a device associated with the given UUID.
+     * This method ensures that the client is initialized and retries the request in case of transient failures.
+     *
      * @param uuid - The UUID of the device.
-     * @returns {Promise<any>} - Information of the device.
-     * @throws {Error} - If the client is not initialized or the fetch operation fails.
+     * @returns A Promise that resolves with the device information.
+     * @throws {Error} - If the client is not initialized, the UUID is missing, or the fetch operation fails.
      */
     getDeviceInfo(uuid: string): Promise<any>;
     /**
@@ -106,5 +108,16 @@ export declare class ApiClient {
      * @throws {Error} - If invalid child lock values or the POST operation fails.
      */
     setChildLock(uuid: string, currentValue: string, defaultValue: string, userId?: number): Promise<void>;
+    /**
+     * Retries an asynchronous operation a specified number of times with a delay between each attempt.
+     *
+     * @template T - The type of the result that the function fn returns.
+     * @param fn - A function that returns a Promise. This is the operation that will be retried upon failure.
+     * @param retries - The number of times to retry the operation. Default is 3.
+     * @param delay - The delay in milliseconds between each retry attempt. Default is 1000ms (1 second).
+     * @returns A Promise that resolves with the result of the function fn if it eventually succeeds,
+     * or rejects with an error if all retry attempts fail.
+     */
+    private retry;
 }
 export {};
