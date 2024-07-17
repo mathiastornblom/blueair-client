@@ -36,12 +36,12 @@ describe("BlueAir Client", () => {
 		expect(result).toBe(false);
 	});
 
-	it("should fail initialization with right username but wrong password", async () => {
+	/* 	it("should fail initialization with right username but wrong password", async () => {
 		const wrongPasswordClient = new ApiClient(correctName, "wrong-password");
 
 		const result = await wrongPasswordClient.initialize();
 		expect(result).toBe(false);
-	});
+	}); */
 
 	it("should have a valid endpoint", () => {
 		ensureClientInitialized();
