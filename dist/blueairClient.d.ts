@@ -61,8 +61,6 @@ export declare class ApiClient {
     getDeviceAttributes(uuid: string): Promise<any>;
     /**
      * Fetches the information of a device associated with the given UUID.
-     * This method ensures that the client is initialized and retries the request in case of transient failures.
-     *
      * @param uuid - The UUID of the device.
      * @returns A Promise that resolves with the device information.
      * @throws {Error} - If the client is not initialized, the UUID is missing, or the fetch operation fails.
@@ -110,8 +108,6 @@ export declare class ApiClient {
     setChildLock(uuid: string, currentValue: string, defaultValue: string, userId?: number): Promise<void>;
     /**
      * Retries an asynchronous operation a specified number of times with a delay between each attempt.
-     *
-     * @template T - The type of the result that the function fn returns.
      * @param fn - A function that returns a Promise. This is the operation that will be retried upon failure.
      * @param retries - The number of times to retry the operation. Default is 3.
      * @param delay - The delay in milliseconds between each retry attempt. Default is 1000ms (1 second).
