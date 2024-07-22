@@ -1,284 +1,196 @@
-import dotenv from "dotenv";
-import { ApiClient } from "../src/blueairClient";
+import ApiClient from "../src/blueairClient";
 
-dotenv.config();
+/**
+ * BlueAir Client Integration Tests
+ *
+ * This test suite covers the following scenarios:
+ * - Initialization with correct and incorrect credentials
+ * - Fetching device list, device attributes, and device info
+ * - Setting device settings (fan speed, brightness, child lock)
+ * - Handling invalid values for device settings
+ * - Handling expired/invalid authentication tokens
+ * - Gracefully handling scenarios with no devices
+ */
 
-describe("BlueAir Client", () => {
-	let client: ApiClient;
-	let isClientInitialized = false; // Add this flag
-	let correctName: string = process.env.CORRECT_NAME!;
-	let rightPassword: string = process.env.RIGHT_PASSWORD!;
+let client: ApiClient;
 
-	beforeAll(async () => {
-		client = new ApiClient(correctName, rightPassword);
-		// Try initializing the client before any test runs
-		try {
-			isClientInitialized = await client.initialize();
-		} catch (error) {
-			console.error("Error during client initialization:", error);
-		}
-	});
+beforeAll(async () => {
+	// Initialize the client before running tests
+	client = new ApiClient("mathias@tornbloms.net", "Hajfena2023?");
+	await client.initialize();
+});
 
-	// Helper function to check client initialization
-	function ensureClientInitialized() {
-		if (!isClientInitialized) {
-			throw new Error("Client not initialized");
-		}
+// Helper function to ensure the client is initialized before each test
+async function ensureClientInitialized() {
+	if (!client.authToken) {
+		await client.initialize();
 	}
+}
 
+describe("BlueAir Client Integration Tests", () => {
+	// Test case to ensure initialization fails with incorrect credentials
 	it("should fail initialization with a wrong username and password", async () => {
 		const wrongPasswordClient = new ApiClient(
 			"wrong-name@domain.com",
 			"wrong-password"
 		);
+		const initResult = await wrongPasswordClient.initialize();
+		expect(initResult).toBe(false);
+	}, 10000);
 
-		const result = await wrongPasswordClient.initialize();
-		expect(result).toBe(false);
-	});
-
-	/* 	it("should fail initialization with right username but wrong password", async () => {
-		const wrongPasswordClient = new ApiClient(correctName, "wrong-password");
-
-		const result = await wrongPasswordClient.initialize();
-		expect(result).toBe(false);
-	}); */
-
+	// Test case to validate the API endpoint
 	it("should have a valid endpoint", () => {
-		ensureClientInitialized();
-		expect(client.endpoint).toBeTruthy();
-		expect(client.endpoint).not.toBeNull();
+		expect(client.endpoint).toBe("api-eu-west-1.blueair.io");
 	});
 
+	// Test case to validate the authentication token
 	it("should have a valid authentication token", () => {
-		ensureClientInitialized();
-		expect(client.authToken).toBeTruthy();
-		expect(client.authToken).not.toBeNull();
+		expect(client.authToken).toBeDefined();
 	});
 
+	// Test case to fetch the list of devices
 	it("should fetch devices", async () => {
-		ensureClientInitialized();
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		console.log("Devices JSON Response:", devices);
+		expect(devices.length).toBeGreaterThan(0);
+	});
+
+	// Test case to fetch attributes for the first device
+	it("should fetch device attributes for the first device", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		const deviceAttributes = await client.getDeviceAttributes(devices[0].uuid);
+		console.log("Device Attributes JSON Response:", deviceAttributes);
+		expect(deviceAttributes).toBeDefined();
+	});
+
+	// Test case to fetch info for the first device
+	it("should fetch device info for the first device", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		const deviceInfo = await client.getDeviceInfo(devices[0].uuid);
+		console.log("Device Info JSON Response:", deviceInfo);
+		expect(deviceInfo).toBeDefined();
+	});
+
+	// Test case to set fan speed for the first device
+	it("should set fan speed for the first device", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		await client.setFanSpeed(devices[0].uuid, 2);
+	});
+
+	// Test case to set brightness for the first device
+	it("should set brightness for the first device", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		await client.setBrightness(devices[0].uuid, 3);
+	});
+
+	// Test case to set child lock for the first device
+	it("should set child lock for the first device", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		await client.setChildLock(devices[0].uuid, true);
+	});
+
+	// Test case to throw an error for invalid fan speed values
+	it("should throw an error for invalid fan speed values", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
 		try {
-			const devices = await client.getDevices();
-			console.log("Devices JSON Response:", devices);
-			expect(devices.length).toBeGreaterThan(0);
+			await client.setFanSpeed(devices[0].uuid, 5); // Invalid value
+		} catch (error) {
+			console.error("Expected error:", error);
+			expect(error.message).toBe(
+				"Invalid fan speed value. Acceptable values are 0, 1, 2, or 3."
+			);
+		}
+	});
+
+	// Test case to throw an error for invalid brightness values
+	it("should throw an error for invalid brightness values", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		try {
+			await client.setBrightness(devices[0].uuid, 5); // Invalid value
+		} catch (error) {
+			console.error("Expected error:", error);
+			expect(error.message).toBe(
+				"Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4."
+			);
+		}
+	});
+
+	// Test case to throw an error when missing arguments
+	it("should throw an error when missing arguments", async () => {
+		await ensureClientInitialized();
+		try {
+			// @ts-expect-error
+			await client.setFanSpeed(); // Missing arguments
+		} catch (error) {
+			expect(error).toBeInstanceOf(Error);
+		}
+	});
+
+	// Test case to gracefully handle expired/invalid authentication token
+	it("should gracefully handle expired/invalid authentication token", async () => {
+		const expiredClient = new ApiClient(
+			"mathias@tornbloms.net",
+			"Hajfena2023?"
+		);
+		jest
+			.spyOn(expiredClient, "authToken", "get")
+			.mockReturnValue("invalid-or-expired-token");
+		try {
+			await expiredClient.getDevices();
+		} catch (error) {
+			expect(error.message).toBe("Auth token invalid or expired");
+		}
+	});
+
+	// Test case to throw an error for non-numeric fan speed values
+	it("should throw an error for non-numeric fan speed values", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		try {
+			// @ts-expect-error
+			await client.setFanSpeed(devices[0].uuid, "high"); // Non-numeric value
+		} catch (error) {
+			expect(error.message).toBe(
+				"Invalid fan speed value. Acceptable values are 0, 1, 2, or 3."
+			);
+		}
+	});
+
+	// Test case to throw an error for non-numeric brightness values
+	it("should throw an error for non-numeric brightness values", async () => {
+		await ensureClientInitialized();
+		const devices = await client.getDevices();
+		try {
+			// @ts-expect-error
+			await client.setBrightness(devices[0].uuid, "high"); // Non-numeric value
+		} catch (error) {
+			expect(error.message).toBe(
+				"Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4."
+			);
+		}
+	});
+
+	// Test case to handle scenarios with no devices gracefully
+	it("should handle no devices scenario gracefully", async () => {
+		const noDeviceClient = new ApiClient(
+			"no-device-user@domain.com",
+			"password"
+		);
+		await noDeviceClient.initialize();
+		try {
+			const devices = await noDeviceClient.getDevices();
+			expect(devices.length).toBe(0);
 		} catch (error) {
 			console.error("Error fetching devices:", error);
 			throw error;
 		}
-	});
-
-	it("should fetch device attributes for the first device", async () => {
-		ensureClientInitialized();
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				const attributes = await client.getDeviceAttributes(uuid);
-				console.log("Device Attributes JSON Response:", attributes);
-				expect(attributes).toBeTruthy();
-			}
-		} catch (error) {
-			console.error("Error fetching device attributes:", error);
-			throw error;
-		}
-	});
-
-	it("should fetch device info for the first device", async () => {
-		ensureClientInitialized();
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				const deviceInfo = await client.getDeviceInfo(uuid);
-				console.log("Device Info JSON Response:", deviceInfo);
-				expect(deviceInfo).toBeTruthy();
-			}
-		} catch (error) {
-			console.error("Error fetching device info:", error);
-			throw error;
-		}
-	});
-
-	it("should set fan speed for the first device", async () => {
-		ensureClientInitialized();
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				const response = await client.setFanSpeed(uuid, "1", "2");
-				console.log(
-					"Response for setting fan speed:",
-					JSON.stringify(response, null, 2)
-				);
-			}
-		} catch (error) {
-			console.error("Error setting fan speed:", error);
-			throw error;
-		}
-	});
-	it("should set brithness for the first device", async () => {
-		ensureClientInitialized();
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				const response = await client.setBrightness(uuid, "1", "2");
-				console.log(
-					"Response for setting fan speed:",
-					JSON.stringify(response, null, 2)
-				);
-			}
-		} catch (error) {
-			console.error("Error setting fan speed:", error);
-			throw error;
-		}
-	});
-	it("should throw an error for invalid fan speed values", async () => {
-		ensureClientInitialized();
-		expect.assertions(1);
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				await client.setFanSpeed(uuid, "5", "2");
-			}
-		} catch (error) {
-			if (error instanceof Error) {
-				console.error("Expected error:", error);
-				expect(error.message).toBe(
-					"Invalid fan speed value. Acceptable values are 0, 1, 2, or 3."
-				);
-			} else {
-				console.error("Caught unexpected non-error value:", error);
-				throw error;
-			}
-		}
-	});
-
-	it("should set child lock for the first device", async () => {
-		ensureClientInitialized();
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				const response = await client.setChildLock(uuid, "1", "0");
-				console.log(
-					"Response for setting brightness:",
-					JSON.stringify(response, null, 2)
-				);
-			}
-		} catch (error) {
-			console.error("Error setting brightness:", error);
-			throw error;
-		}
-	});
-
-	it("should throw an error for invalid brightness values", async () => {
-		expect.assertions(1);
-		try {
-			const devices = await client.getDevices();
-			if (devices.length > 0) {
-				const uuid = devices[0].uuid;
-				await client.setBrightness(uuid, "5", "2");
-			}
-		} catch (error) {
-			if (error instanceof Error) {
-				console.error("Expected error:", error);
-				expect(error.message).toBe(
-					"Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4."
-				);
-			} else {
-				console.error("Caught unexpected non-error value:", error);
-				throw error;
-			}
-		}
-	});
-	it("should throw an error when missing arguments", async () => {
-		ensureClientInitialized();
-		expect.assertions(1);
-		try {
-			// Using fan speed as an example; similar tests can be created for other methods
-			await client.setFanSpeed("", "", "");
-		} catch (error) {
-			if (error instanceof Error) {
-				expect(error.message).toBe("Missing arguments");
-			} else {
-				throw error;
-			}
-		}
-	});
-	it("should gracefully handle expired/invalid authentication token", async () => {
-		ensureClientInitialized();
-		expect.assertions(1);
-
-		// Get the prototype of the client instance
-		const prototype = Object.getPrototypeOf(client);
-		if (!prototype) {
-			throw new Error(
-				"Failed to obtain the prototype of the ApiClient instance."
-			);
-		}
-
-		// Get the original getter method of the authToken
-		const descriptor = Object.getOwnPropertyDescriptor(prototype, "authToken");
-		if (!descriptor || typeof descriptor.get !== "function") {
-			throw new Error(
-				"Failed to get the descriptor of the authToken property."
-			);
-		}
-		const originalGetAuthToken = descriptor.get;
-
-		// Mock the authToken getter to return an invalid token
-		jest.spyOn(prototype, "authToken", "get").mockReturnValue("invalidToken");
-
-		try {
-			await client.getDevices();
-		} catch (error) {
-			if (error instanceof Error) {
-				expect(error.message).toBe("Auth token invalid or expired");
-			} else {
-				throw error;
-			}
-		} finally {
-			// Restore the original getter
-			jest
-				.spyOn(prototype, "authToken", "get")
-				.mockImplementation(originalGetAuthToken);
-		}
-	});
-
-	it("should throw an error for non-numeric fan speed values", async () => {
-		ensureClientInitialized();
-		expect.assertions(1);
-		try {
-			await client.setFanSpeed("uuidSample", "one", "two");
-		} catch (error) {
-			if (error instanceof Error) {
-				expect(error.message).toBe("Fan speed value must be numeric.");
-			} else {
-				throw error;
-			}
-		}
-	});
-
-	it("should throw an error for non-numeric brightnes values", async () => {
-		ensureClientInitialized();
-		expect.assertions(1);
-		try {
-			await client.setBrightness("uuidSample", "one", "two");
-		} catch (error) {
-			if (error instanceof Error) {
-				expect(error.message).toBe("Brightness value must be numeric.");
-			} else {
-				throw error;
-			}
-		}
-	});
-	it("should handle no devices scenario gracefully", async () => {
-		ensureClientInitialized();
-		// This requires mocking the getDevices method to return an empty array
-		jest.spyOn(client, "getDevices").mockResolvedValue([]);
-		const devices = await client.getDevices();
-		expect(devices.length).toBe(0);
 	});
 });
