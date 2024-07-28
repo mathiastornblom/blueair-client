@@ -17,7 +17,8 @@ interface Device {
  */
 export class ApiClient {
 	// Constant API key token, required for authenticating with the API.
-	private readonly API_KEY_TOKEN: string = process.env.API_KEY_TOKEN || "";
+	private readonly API_KEY_TOKEN: string =
+		"eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoiYmx1ZWFpciIsImlhdCI6MTQ1MzEyNTYzMiwidmFsaWRpdHkiOi0xLCJqdGkiOiJkNmY3OGE0Yi1iMWNkLTRkZDgtOTA2Yi1kN2JkNzM0MTQ2NzQiLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwicXVvdGEiOi0xLCJyYXRlTGltaXQiOi0xfQ.CJsfWVzFKKDDA6rWdh-hjVVVE9S3d6Hu9BzXG9htWFw";
 
 	// Endpoint to determine the home host. You will need to replace this with your actual endpoint.
 	private readonly HOMEHOST_ENDPOINT: string = "https://api.blueair.io/v2/";
