@@ -290,6 +290,7 @@ export class ApiClient {
 		const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(
 			uuid
 		)}/info/`;
+		console.log(`Fetching device info for UUID ${uuid} from: ${fetchUrl}`);
 
 		return this.retry(async () => {
 			try {
@@ -305,13 +306,25 @@ export class ApiClient {
 						throw new Error("Invalid JSON response");
 					}
 				}
+				console.log(`Received device info for UUID ${uuid}.`);
 				return deviceInfo;
 			} catch (error) {
 				if (axios.isAxiosError(error)) {
-					console.error("Failed to fetch device info", error);
+					if (error.response?.status === 500) {
+						console.error(
+							`Server error while fetching device info: ${error.response.data}`
+						);
+					} else if (error.response?.status === 401) {
+						throw new Error("Auth token invalid or expired");
+					} else {
+						console.error(
+							`Error fetching device info: ${error.response?.statusText}`,
+							error.response?.data
+						);
+					}
 					throw new Error(`Error fetching device info: ${error.message}`);
 				} else {
-					console.error("Unexpected error", error);
+					console.error("An unexpected error occurred", error);
 					throw error;
 				}
 			}
