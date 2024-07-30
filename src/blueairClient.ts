@@ -247,12 +247,21 @@ export class ApiClient {
 				return attributes;
 			} catch (error) {
 				if (axios.isAxiosError(error)) {
-					if (error.response?.status === 401) {
+					if (error.response?.status === 500) {
+						console.error(
+							`Server error while fetching attributes: ${error.response.data}`
+						);
+					} else if (error.response?.status === 401) {
 						throw new Error("Auth token invalid or expired");
 					} else {
-						throw new Error(`Error fetching attributes: ${error.message}`);
+						console.error(
+							`Error fetching attributes: ${error.response?.statusText}`,
+							error.response?.data
+						);
 					}
+					throw new Error(`Error fetching attributes: ${error.message}`);
 				} else {
+					console.error("An unexpected error occurred", error);
 					throw error;
 				}
 			}
