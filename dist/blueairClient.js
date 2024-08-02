@@ -27,9 +27,9 @@ class ApiClient {
      */
     constructor(username, password) {
         // Constant API key token, required for authenticating with the API.
-        this.API_KEY_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoiYmx1ZWFpciIsImlhdCI6MTQ1MzEyNTYzMiwidmFsaWRpdHkiOi0xLCJqdGkiOiJkNmY3OGE0Yi1iMWNkLTRkZDgtOTA2Yi1kN2JkNzM0MTQ2NzQiLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwicXVvdGEiOi0xLCJyYXRlTGltaXQiOi0xfQ.CJsfWVzFKKDDA6rWdh-hjVVVE9S3d6Hu9BzXG9htWFw";
+        this.API_KEY_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoiYmx1ZWFpciIsImlhdCI6MTQ1MzEyNTYzMiwidmFsaWRpdHkiOi0xLCJqdGkiOiJkNmY3OGE0Yi1iMWNkLTRkZDgtOTA2Yi1kN2JkNzM0MTQ2NzQiLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwicXVvdGEiOi0xLCJyYXRlTGltaXQiOi0xfQ.CJsfWVzFKKDDA6rWdh-hjVVVE9S3d6Hu9BzXG9htWFw';
         // Endpoint to determine the home host. You will need to replace this with your actual endpoint.
-        this.HOMEHOST_ENDPOINT = "https://api.blueair.io/v2/";
+        this.HOMEHOST_ENDPOINT = 'https://api.blueair.io/v2/';
         // The API endpoint determined after initialization.
         this._endpoint = null;
         // Authentication token fetched during initialization.
@@ -60,7 +60,7 @@ class ApiClient {
                     const response = yield axios_1.default.get(url, {
                         headers: {
                             Authorization: `Basic ${this.base64Credentials}`,
-                            "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                            'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
                         },
                     });
                     console.log(`Determined endpoint: ${response.data}`);
@@ -68,12 +68,12 @@ class ApiClient {
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
-                        console.error("Failed to determine endpoint", error);
+                        console.error('Failed to determine endpoint', error);
                         throw new Error(`Failed to determine endpoint. Message: ${error.message}`);
                     }
                     else {
-                        console.error("An unexpected error occurred", error);
-                        throw new Error("An unexpected error occurred");
+                        console.error('An unexpected error occurred', error);
+                        throw new Error('An unexpected error occurred');
                     }
                 }
             }));
@@ -88,7 +88,7 @@ class ApiClient {
     fetchAuthToken(endpoint) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!endpoint) {
-                throw new Error("Endpoint is null. Cannot fetch auth token.");
+                throw new Error('Endpoint is null. Cannot fetch auth token.');
             }
             const url = `https://${endpoint}/v2/user/${encodeURIComponent(this.username)}/login/`;
             console.log(`Determining login endpoint with URL: ${url}`);
@@ -97,21 +97,21 @@ class ApiClient {
                     const response = yield axios_1.default.get(url, {
                         headers: {
                             Authorization: `Basic ${this.base64Credentials}`,
-                            "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                            'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
                         },
                     });
                     const data = response.data;
                     if (response.status === 200) {
                         if (data === false) {
-                            console.error("User is locked out");
-                            throw new Error("User is locked out");
+                            console.error('User is locked out');
+                            throw new Error('User is locked out');
                         }
-                        const authToken = response.headers["x-auth-token"];
+                        const authToken = response.headers['x-auth-token'];
                         console.log(`Received auth token: ${authToken}`);
                         return authToken;
                     }
                     else {
-                        console.error("Unexpected status code:", response.status);
+                        console.error('Unexpected status code:', response.status);
                         return null;
                     }
                 }
@@ -119,11 +119,11 @@ class ApiClient {
                     if (axios_1.default.isAxiosError(error)) {
                         const response = error.response;
                         if (response && response.status === 404) {
-                            console.error("User not found:", response.data.message);
+                            console.error('User not found:', response.data.message);
                             throw new Error(`User not found: ${response.data.message}`);
                         }
                         else {
-                            console.error("Failed to fetch auth token:", response === null || response === void 0 ? void 0 : response.data.message);
+                            console.error('Failed to fetch auth token:', response === null || response === void 0 ? void 0 : response.data.message);
                             throw new Error(`Failed to fetch auth token. Status: ${response === null || response === void 0 ? void 0 : response.status}. Message: ${response === null || response === void 0 ? void 0 : response.data.message}`);
                         }
                     }
@@ -141,11 +141,11 @@ class ApiClient {
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("Initializing client...");
+                console.log('Initializing client...');
                 this._endpoint = yield this.determineEndpoint();
                 const authTokenResponse = yield this.fetchAuthToken(this._endpoint);
                 if (authTokenResponse === null) {
-                    console.error("Authentication token fetch returned false");
+                    console.error('Authentication token fetch returned false');
                     return false;
                 }
                 this._authToken = authTokenResponse;
@@ -153,7 +153,7 @@ class ApiClient {
                 return true;
             }
             catch (error) {
-                console.error("Error during initialization:", error);
+                console.error('Error during initialization:', error);
                 return false;
             }
         });
@@ -166,11 +166,11 @@ class ApiClient {
     getDevices() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
             };
             const fetchUrl = `https://${this.endpoint}/v2/owner/${encodeURIComponent(this.username)}/device/`;
             console.log(`Fetching devices from: ${fetchUrl}`);
@@ -184,14 +184,14 @@ class ApiClient {
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
                         if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                            throw new Error("Auth token invalid or expired");
+                            throw new Error('Auth token invalid or expired');
                         }
-                        console.error("Failed to fetch devices", error);
+                        console.error('Failed to fetch devices', error);
                         throw new Error(`Error fetching devices: ${(_b = error.response) === null || _b === void 0 ? void 0 : _b.status}`);
                     }
                     else {
-                        console.error("An unexpected error occurred", error);
-                        throw new Error("An unexpected error occurred");
+                        console.error('An unexpected error occurred', error);
+                        throw new Error('An unexpected error occurred');
                     }
                 }
             }));
@@ -206,16 +206,16 @@ class ApiClient {
     getDeviceAttributes(uuid) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attributes/`;
             console.log(`Fetching attributes for device UUID ${uuid} from: ${fetchUrl}`);
             return this.retry(() => __awaiter(this, void 0, void 0, function* () {
-                var _a;
+                var _a, _b, _c, _d;
                 try {
                     const response = yield axios_1.default.get(fetchUrl, { headers });
                     const attributes = response.data;
@@ -224,14 +224,19 @@ class ApiClient {
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
-                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                            throw new Error("Auth token invalid or expired");
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 500) {
+                            console.error(`Server error while fetching attributes: ${error.response.data}`);
+                        }
+                        else if (((_b = error.response) === null || _b === void 0 ? void 0 : _b.status) === 401) {
+                            throw new Error('Auth token invalid or expired');
                         }
                         else {
-                            throw new Error(`Error fetching attributes: ${error.message}`);
+                            console.error(`Error fetching attributes: ${(_c = error.response) === null || _c === void 0 ? void 0 : _c.statusText}`, (_d = error.response) === null || _d === void 0 ? void 0 : _d.data);
                         }
+                        throw new Error(`Error fetching attributes: ${error.message}`);
                     }
                     else {
+                        console.error('An unexpected error occurred', error);
                         throw error;
                     }
                 }
@@ -247,21 +252,23 @@ class ApiClient {
     getDeviceInfo(uuid) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             if (!uuid) {
-                throw new Error("Missing arguments");
+                throw new Error('Missing arguments');
             }
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/info/`;
+            console.log(`Fetching device info for UUID ${uuid} from: ${fetchUrl}`);
             return this.retry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d;
                 try {
                     const response = yield axios_1.default.get(fetchUrl, { headers });
                     let deviceInfo;
-                    if (typeof response.data === "object") {
+                    if (typeof response.data === 'object') {
                         deviceInfo = response.data;
                     }
                     else {
@@ -269,18 +276,27 @@ class ApiClient {
                             deviceInfo = JSON.parse(response.data);
                         }
                         catch (jsonError) {
-                            throw new Error("Invalid JSON response");
+                            throw new Error('Invalid JSON response');
                         }
                     }
+                    console.log(`Received device info for UUID ${uuid}.`);
                     return deviceInfo;
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
-                        console.error("Failed to fetch device info", error);
+                        if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 500) {
+                            console.error(`Server error while fetching device info: ${error.response.data}`);
+                        }
+                        else if (((_b = error.response) === null || _b === void 0 ? void 0 : _b.status) === 401) {
+                            throw new Error('Auth token invalid or expired');
+                        }
+                        else {
+                            console.error(`Error fetching device info: ${(_c = error.response) === null || _c === void 0 ? void 0 : _c.statusText}`, (_d = error.response) === null || _d === void 0 ? void 0 : _d.data);
+                        }
                         throw new Error(`Error fetching device info: ${error.message}`);
                     }
                     else {
-                        console.error("Unexpected error", error);
+                        console.error('An unexpected error occurred', error);
                         throw error;
                     }
                 }
@@ -299,42 +315,42 @@ class ApiClient {
     setFanSpeed(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!uuid || !currentValue || !defaultValue) {
-                throw new Error("Missing arguments");
+                throw new Error('Missing arguments');
             }
             if (isNaN(Number(currentValue)) || isNaN(Number(defaultValue))) {
-                throw new Error("Fan speed value must be numeric.");
+                throw new Error('Fan speed value must be numeric.');
             }
-            if (!["0", "1", "2", "3"].includes(currentValue) ||
-                !["0", "1", "2", "3"].includes(defaultValue)) {
-                throw new Error("Invalid fan speed value. Acceptable values are 0, 1, 2, or 3.");
+            if (!['0', '1', '2', '3'].includes(currentValue) ||
+                !['0', '1', '2', '3'].includes(defaultValue)) {
+                throw new Error('Invalid fan speed value. Acceptable values are 0, 1, 2, or 3.');
             }
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             const body = {
                 userId: userId,
                 uuid: uuid,
-                scope: "device",
-                name: "fan_speed",
+                scope: 'device',
+                name: 'fan_speed',
                 currentValue: currentValue,
                 defaultValue: defaultValue,
             };
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                "Content-Type": "application/json",
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
+                'Content-Type': 'application/json',
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
             return this.retry(() => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 try {
                     yield axios_1.default.post(fetchUrl, body, { headers });
-                    console.log("Fan speed set successfully.");
+                    console.log('Fan speed set successfully.');
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
                         if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                            throw new Error("Auth token invalid or expired");
+                            throw new Error('Auth token invalid or expired');
                         }
                         else {
                             throw new Error(`Error setting fan speed: ${error.message}`);
@@ -359,39 +375,39 @@ class ApiClient {
     setFanAuto(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!uuid || !currentValue || !defaultValue) {
-                throw new Error("Missing arguments");
+                throw new Error('Missing arguments');
             }
-            if (!["auto", "manual"].includes(currentValue) ||
-                !["auto", "manual"].includes(defaultValue)) {
-                throw new Error("Invalid fan speed value. Acceptable values are manual or auto");
+            if (!['auto', 'manual'].includes(currentValue) ||
+                !['auto', 'manual'].includes(defaultValue)) {
+                throw new Error('Invalid fan speed value. Acceptable values are manual or auto');
             }
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             const body = {
                 userId: userId,
                 uuid: uuid,
-                scope: "device",
-                name: "mode",
+                scope: 'device',
+                name: 'mode',
                 currentValue: currentValue,
                 defaultValue: defaultValue,
             };
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                "Content-Type": "application/json",
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
+                'Content-Type': 'application/json',
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/fanspeed/`;
             return this.retry(() => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 try {
                     yield axios_1.default.post(fetchUrl, body, { headers });
-                    console.log("Fan mode set successfully.");
+                    console.log('Fan mode set successfully.');
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
                         if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                            throw new Error("Auth token invalid or expired");
+                            throw new Error('Auth token invalid or expired');
                         }
                         else {
                             throw new Error(`Error setting fan mode: ${error.message}`);
@@ -416,43 +432,43 @@ class ApiClient {
     setBrightness(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!uuid || !currentValue || !defaultValue) {
-                throw new Error("Missing arguments");
+                throw new Error('Missing arguments');
             }
             if (isNaN(Number(currentValue)) || isNaN(Number(defaultValue))) {
-                throw new Error("Brightness value must be numeric.");
+                throw new Error('Brightness value must be numeric.');
             }
-            if (!["0", "1", "2", "3", "4"].includes(currentValue) ||
-                !["0", "1", "2", "3", "4"].includes(defaultValue)) {
-                throw new Error("Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4.");
+            if (!['0', '1', '2', '3', '4'].includes(currentValue) ||
+                !['0', '1', '2', '3', '4'].includes(defaultValue)) {
+                throw new Error('Invalid brightness value. Acceptable values are 0, 1, 2, 3 or 4.');
             }
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             const body = {
                 userId: userId,
                 uuid: uuid,
-                scope: "device",
-                name: "brightness",
+                scope: 'device',
+                name: 'brightness',
                 currentValue: currentValue,
                 defaultValue: defaultValue,
             };
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                "Content-Type": "application/json",
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
+                'Content-Type': 'application/json',
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/brightness/`;
             return this.retry(() => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 try {
                     const response = yield axios_1.default.post(fetchUrl, body, { headers });
-                    console.log("Brightness set successfully.");
+                    console.log('Brightness set successfully.');
                     return response.data; // You might adjust this return based on the actual response structure
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
                         if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                            throw new Error("Auth token invalid or expired");
+                            throw new Error('Auth token invalid or expired');
                         }
                         throw new Error(`Error setting brightness: ${error.message}`);
                     }
@@ -475,42 +491,42 @@ class ApiClient {
     setChildLock(uuid, currentValue, defaultValue, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!uuid || !currentValue || !defaultValue) {
-                throw new Error("Missing arguments");
+                throw new Error('Missing arguments');
             }
             if (isNaN(Number(currentValue)) || isNaN(Number(defaultValue))) {
-                throw new Error("Child lock values must be numeric.");
+                throw new Error('Child lock values must be numeric.');
             }
-            if (!["0", "1"].includes(currentValue) ||
-                !["0", "1"].includes(defaultValue)) {
-                throw new Error("Invalid child lock value. Acceptable values are 0 (unlocked) or 1 (locked).");
+            if (!['0', '1'].includes(currentValue) ||
+                !['0', '1'].includes(defaultValue)) {
+                throw new Error('Invalid child lock value. Acceptable values are 0 (unlocked) or 1 (locked).');
             }
             if (!this.endpoint || !this.authToken) {
-                throw new Error("Client not initialized or missing endpoint/authToken");
+                throw new Error('Client not initialized or missing endpoint/authToken');
             }
             const body = {
                 userId: userId,
                 uuid: uuid,
-                scope: "device",
-                name: "child_lock",
+                scope: 'device',
+                name: 'child_lock',
                 currentValue: currentValue,
                 defaultValue: defaultValue,
             };
             const headers = {
-                "X-AUTH-TOKEN": this.authToken,
-                "X-API-KEY-TOKEN": this.API_KEY_TOKEN,
-                "Content-Type": "application/json",
+                'X-AUTH-TOKEN': this.authToken,
+                'X-API-KEY-TOKEN': this.API_KEY_TOKEN,
+                'Content-Type': 'application/json',
             };
             const fetchUrl = `https://${this.endpoint}/v2/device/${encodeURIComponent(uuid)}/attribute/childlock/`;
             return this.retry(() => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 try {
                     yield axios_1.default.post(fetchUrl, body, { headers });
-                    console.log("Child lock set successfully.");
+                    console.log('Child lock set successfully.');
                 }
                 catch (error) {
                     if (axios_1.default.isAxiosError(error)) {
                         if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-                            throw new Error("Auth token invalid or expired");
+                            throw new Error('Auth token invalid or expired');
                         }
                         else {
                             throw new Error(`Error setting child lock: ${error.message}`);
@@ -546,7 +562,7 @@ class ApiClient {
                     }
                 }
             }
-            throw new Error("Failed after multiple retries");
+            throw new Error('Failed after multiple retries');
         });
     }
 }
